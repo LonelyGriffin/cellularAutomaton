@@ -1,46 +1,25 @@
-/**
- * Created by LonelyGriffin on 05.12.2016.
- */
-var BowerWebpackPlugin = require("bower-webpack-plugin");
-var webpack = require("webpack");
+var _ = require("lodash");
 
-module.exports = {
-    context: __dirname + '/frontend',
-    entry: {
-        main: './index'
-    },
-    output: {
-        path: __dirname + '/public',
-        publicPath: '/',
-        filename:   'js/[name].js',
-        library: "[name]"
-    },
-    watch: true,
-    devtool: "cheap-module-source-map",
-    module: {
-        loaders: [
-            {
-                test: /\.js$/,
-                loader: "babel?presets[]=es2015"
-            },
-            {
-                test: /\.jade$/,
-                loader: "jade"
-            }
-        ]
-    },
-    plugins: [
-        new webpack.NoErrorsPlugin(),
-        new BowerWebpackPlugin({
-            modulesDirectories: ['./'],
-            manifestFiles: ['bower.json', '.bower.json'],
-            searchResolveModulesDirectories: true
-        }),
-        new webpack.optimize.CommonsChunkPlugin({
-            name: "common"
-        })
-    ],
-    resolve: {
-        modulesDirectories: ["node_modules", "frontend", "declaration"]
-    }
+var _configs = {
+    global: require(__dirname + '/build_config/global.js'),
+    production: require(__dirname + '/build_config/production.js'),
+    development: require(__dirname + '/build_config/development.js')
 };
+
+var _load = function(environment) {
+  // Проверяем окружение
+  if (!environment) throw 'Can\'t find local environment variable via process.env.NODE_ENV';
+  if (!_configs[environment]) throw 'Can\'t find environments see _config object';
+
+  // load config file by environment
+  return _configs && _.merge(
+    _configs[environment](__dirname),
+    _configs['global'](__dirname)
+  );
+};
+
+/**
+ * Export WebPack config
+ * @type {[type]}
+ */
+module.exports = _load(process.env.NODE_ENV || "development");

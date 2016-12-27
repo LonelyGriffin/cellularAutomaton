@@ -1,11 +1,14 @@
 {
   "name": "celluar-automaton",
   "version": "1.0.0",
-  "description": "Web app for demonstrated life automaton",
+  "description": "Web app for demonstrating life automaton",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack"
+    "start": "npm run build:watch",
+    "build": "SET 'NODE_ENV=production' && webpack",
+    "build:watch": "SET 'NODE_ENV=development' && webpack-dev-server --inline --hot --watch",
+    "test": "(if exist 'tmp' rd /s /q 'tmp) && (karma start karma.conf.js --single-run --browsers PhantomJS)",
+    "test:watch": "karma start karma.conf.js --browsers PhantomJS"
   },
   "repository": {
     "type": "git",
@@ -26,11 +29,40 @@
   "devDependencies": {
     "babel-core": "^6.0.14",
     "babel-loader": "^6.0.0",
+    "babel-plugin-transform-class-properties": "^6.19.0",
     "babel-preset-es2015": "^6.0.14",
+    "babel-preset-react": "^6.16.0",
     "bower-webpack-plugin": "^0.1.9",
-    "jade": "^1.11.0",
-    "jade-loader": "^0.8.0",
-    "webpack": "^1.13.3"
+    "chai": "^3.5.0",
+    "chai-spies": "^0.7.1",
+    "css-loader": "^0.26.1",
+    "extract-text-webpack-plugin": "^1.0.1",
+    "jasmine-core": "^2.5.2",
+    "karma": "^1.3.0",
+    "karma-chai": "^0.1.0",
+    "karma-coverage": "^1.1.1",
+    "karma-jasmine": "^1.1.0",
+    "karma-mocha": "^1.3.0",
+    "karma-mocha-reporter": "^2.2.1",
+    "karma-phantomjs-launcher": "^1.0.2",
+    "karma-sourcemap-loader": "^0.3.7",
+    "karma-webpack": "^1.8.1",
+    "less": "^2.7.1",
+    "less-loader": "^2.2.3",
+    "lodash": "^4.17.2",
+    "mocha": "^3.2.0",
+    "phantomjs-prebuilt": "^2.1.14",
+    "pug": "^2.0.0-beta6",
+    "pug-loader": "^2.3.0",
+    "webpack": "^1.13.3",
+    "webpack-dev-server": "^1.16.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "events": "^1.1.1",
+    "material-ui": "^0.16.6",
+    "react": "^15.4.1",
+    "react-addons-css-transition-group": "^15.4.1",
+    "react-dom": "^15.4.1",
+    "react-tap-event-plugin": "^2.0.1"
+  }
 }
