@@ -19,7 +19,7 @@ export default class App extends React.Component {
 		});
 	}
 	closeMenuHandler(){
-		MenuAction.closeMenu();
+		MenuAction.close();
 	}
 	render() {
 		return (
