@@ -1,5 +1,6 @@
 import Dispatcher from "service/dispatcher";
 import BaseStore from "store/base";
+//TODO: перенести константы в action
 import { WORLD_START, WORLD_STOP, WORLD_RESET, WORLD_FIELD_TOGGLE, WORLD_FIELDS_TOGGLE } from "constant/world";
 
 let nextStateGenerator = {
@@ -73,10 +74,10 @@ class WorldStore extends BaseStore {
 
 		this._toChangeFields = {};
 
-		Dispatcher.on(WORLD_START, this._startHandler);
-		Dispatcher.on(WORLD_STOP, this._stopHandler);
-		Dispatcher.on(WORLD_RESET, this._resetHandler);
-		Dispatcher.on(WORLD_FIELD_TOGGLE, this._toggleFieldHandler);
+		Dispatcher.on(WORLD_START, this._startHandler.bind(this));
+		Dispatcher.on(WORLD_STOP, this._stopHandler.bind(this));
+		Dispatcher.on(WORLD_RESET, this._resetHandler.bind(this));
+		Dispatcher.on(WORLD_FIELD_TOGGLE, this._toggleFieldHandler.bind(this));
 	}
 
 	/// private methods ///
@@ -102,8 +103,7 @@ class WorldStore extends BaseStore {
 
 	/// event handlers ///
 	
-	// TODO: избавиться от стрелочных функций в роли методов
-	_startHandler = () => {
+	_startHandler() {
 		this._state.launched = true;
 
 		let changedFields = nextStateGenerator.getToChangeFields(this._state.fields);
@@ -121,15 +121,15 @@ class WorldStore extends BaseStore {
 
 		this._emitChanged();
 	}
-	_stopHandler = () => {
+	_stopHandler() {
 		this._state.launched = false;
 		this._emitChanged();
 	}
-	_resetHandler = () => {
+	_resetHandler() {
 		this._state.fields = {};
 		this._emitChanged();
 	}
-	_toggleFieldHandler = (fieldX, fieldY) => {
+	_toggleFieldHandler(fieldX, fieldY) {
 		this._toggleField(fieldX, fieldY);
 		this._emitChanged();
 	}

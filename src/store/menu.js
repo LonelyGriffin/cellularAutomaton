@@ -10,15 +10,15 @@ class MenuStore extends BaseStore {
 			opened: false
 		}
 
-		Dispatcher.on(MENU_OPEN, this._openHandler);
-		Dispatcher.on(MENU_CLOSE, this._closeHandler);
+		Dispatcher.on(MENU_OPEN, this._openHandler.bind(this));
+		Dispatcher.on(MENU_CLOSE, this._closeHandler.bind(this));
 	}
 
-	_openHandler = () => {
+	_openHandler() {
 		this._state.opened = true;
 		this._emitChanged();
 	}
-	_closeHandler = () => {
+	_closeHandler() {
 		this._state.opened = false;
 		this._emitChanged();
 	}
