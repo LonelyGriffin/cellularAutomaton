@@ -1,18 +1,45 @@
+html {
+	margin: 0;
+	height: 100%;
+	width: 100%;
+}
 body {
 	margin: 0;
+	height: 100%;
+	width: 100%;
+}
+
+#app{
+	height: 100%;
 }
 
 .hide {
 	display: none!important;
 }
 
-.controllers {
-	position: relative;
-	width: 100%;
-	height: 100%;
-	.simulate {
-		position: absolute;
-		top: 0;
-		right: 0;
-	}
+.layout {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    .content {
+    	position: relative;
+    	flex-grow: 100;
+    	display: flex;
+	    justify-content: center;
+    	align-items: center;
+
+    	.controllers {
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			.simulate {
+				position: absolute;
+				top: 0;
+				right: 0;
+			}
+		}
+    }
 }
+
+

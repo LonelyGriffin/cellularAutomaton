@@ -16,17 +16,22 @@ export default class App extends React.Component {
 	}
 	render() {
 		return (
-			<div>
-				<AppBar title="Cellular automaton" onLeftIconButtonTouchTap={() => this.openMenuHandler()}/>
-				<Menu/>
-				<div className='controllers'>
-					<div className='simulate'>
-						<SimulateCtrls />
-					</div>
+			<div className="layout">
+				<div className="header">
+					<AppBar title="Cellular automaton" onLeftIconButtonTouchTap={() => this.openMenuHandler()}/>
 				</div>
-				<div>
+				
+				<Menu/>
+
+				<div className="content">
+					<div className='controllers'>
+						<div className='simulate'>
+							<SimulateCtrls />
+						</div>
+					</div>
 					<WorldMap />
 				</div>
+				
 			</div>
 		);
 	}
