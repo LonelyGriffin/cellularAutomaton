@@ -1,4 +1,0 @@
-export const WORLD_START = 'WORLD:START';
-export const WORLD_STOP = 'WORLD:STOP';
-export const WORLD_RESET = 'WORLD:RESET';
-export const WORLD_FIELD_TOGGLE = 'WORLD:FIELD:TOGGLE';

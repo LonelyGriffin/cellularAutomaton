@@ -1,11 +1,13 @@
 import Dispatcher from "service/dispatcher";
-import {MENU_OPEN, MENU_CLOSE} from "constant/menu";
 
 export default {
+	MENU_OPEN: 'MENU:OPEN',
+	MENU_CLOSE: 'MENU:CLOSE', 
+
 	open(){
-		Dispatcher.emit(MENU_OPEN);
+		Dispatcher.emit(this.MENU_OPEN);
 	},
 	close(){
-		Dispatcher.emit(MENU_CLOSE);
+		Dispatcher.emit(this.MENU_CLOSE);
 	}
 };

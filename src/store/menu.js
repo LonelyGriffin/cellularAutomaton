@@ -1,6 +1,6 @@
 import Dispatcher from "service/dispatcher";
 import BaseStore from "store/base";
-import {MENU_OPEN, MENU_CLOSE} from "constant/menu";
+import MenuAction from "action/menu";
 
 class MenuStore extends BaseStore {
 	constructor() {
@@ -10,8 +10,8 @@ class MenuStore extends BaseStore {
 			opened: false
 		}
 
-		Dispatcher.on(MENU_OPEN, this._openHandler.bind(this));
-		Dispatcher.on(MENU_CLOSE, this._closeHandler.bind(this));
+		Dispatcher.on(MenuAction.MENU_OPEN, this._openHandler.bind(this));
+		Dispatcher.on(MenuAction.MENU_CLOSE, this._closeHandler.bind(this));
 	}
 
 	_openHandler() {

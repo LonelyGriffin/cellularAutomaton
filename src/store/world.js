@@ -1,7 +1,6 @@
 import Dispatcher from "service/dispatcher";
 import BaseStore from "store/base";
-//TODO: перенести константы в action
-import { WORLD_START, WORLD_STOP, WORLD_RESET, WORLD_FIELD_TOGGLE, WORLD_FIELDS_TOGGLE } from "constant/world";
+import WorldAction from "action/world";
 
 let nextStateGenerator = {
 	_getNeighborFields(field) {
@@ -58,7 +57,7 @@ let nextStateGenerator = {
 
 		}
 		return result;
-	}
+	} 
 }
 
 class WorldStore extends BaseStore {
@@ -74,10 +73,10 @@ class WorldStore extends BaseStore {
 
 		this._toChangeFields = {};
 
-		Dispatcher.on(WORLD_START, this._startHandler.bind(this));
-		Dispatcher.on(WORLD_STOP, this._stopHandler.bind(this));
-		Dispatcher.on(WORLD_RESET, this._resetHandler.bind(this));
-		Dispatcher.on(WORLD_FIELD_TOGGLE, this._toggleFieldHandler.bind(this));
+		Dispatcher.on(WorldAction.WORLD_START, this._startHandler.bind(this));
+		Dispatcher.on(WorldAction.WORLD_STOP, this._stopHandler.bind(this));
+		Dispatcher.on(WorldAction.WORLD_RESET, this._resetHandler.bind(this));
+		Dispatcher.on(WorldAction.WORLD_FIELD_TOGGLE, this._toggleFieldHandler.bind(this));
 	}
 
 	/// private methods ///
