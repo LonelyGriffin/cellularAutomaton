@@ -1,25 +1,25 @@
-import Dispatcher from "service/dispatcher";
+import Dispatcher from 'service/dispatcher';
 
 export default {
-	WORLD_START: 'WORLD:START',
-	WORLD_STOP: 'WORLD:STOP',
-	WORLD_RESET: 'WORLD:RESET',
-	WORLD_FIELD_TOGGLE: 'WORLD:FIELD:TOGGLE',
+	START: 'WORLD:START',
+	STOP: 'WORLD:STOP',
+	RESET: 'WORLD:RESET',
+	SET_FIELD: 'WORLD:FIELD:SET',
+	SET_FIELDS: 'WORLD:FIELDS:SET',
 
-	start(){
-		Dispatcher.emit(this.WORLD_START);
-
+	start() {
+		Dispatcher.fire(this.START);
 	},
 
-	stop(){
-		Dispatcher.emit(this.WORLD_STOP);
+	stop() {
+		Dispatcher.fire(this.STOP);
 	},
 
 	reset() {
-		Dispatcher.emit(this.WORLD_RESET);
+		Dispatcher.fire(this.RESET);
 	},
 
-	toggle(field_x, field_y) {
-		Dispatcher.emit(this.WORLD_FIELD_TOGGLE, field_x, field_y);
-	}
+	set(point, field) {
+		Dispatcher.fire(this.SET_FIELD, point, field);
+	},
 };

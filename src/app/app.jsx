@@ -8,30 +8,24 @@ import WorldMap from 'app/worldMap/standart';
 import 'app/app.less';
 
 export default class App extends React.Component {
-	constructor(props) {
-		super(props);
-	}
-	openMenuHandler(){
+	openMenuHandler = () => {
 		MenuAction.open();
 	}
 	render() {
 		return (
 			<div className="layout">
 				<div className="header">
-					<AppBar title="Cellular automaton" onLeftIconButtonTouchTap={() => this.openMenuHandler()}/>
+					<AppBar title="Cellular automaton" onLeftIconButtonTouchTap={this.openMenuHandler} />
 				</div>
-				
-				<Menu/>
-
+				<Menu />
 				<div className="content">
-					<div className='controllers'>
-						<div className='simulate'>
+					<div className="controllers">
+						<div className="simulate">
 							<SimulateCtrls />
 						</div>
 					</div>
 					<WorldMap />
 				</div>
-				
 			</div>
 		);
 	}

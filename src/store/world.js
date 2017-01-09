@@ -1,136 +1,188 @@
-import Dispatcher from "service/dispatcher";
-import BaseStore from "store/base";
-import WorldAction from "action/world";
+import Dispatcher from 'service/dispatcher';
+import BaseStore from 'store/base';
+import WorldAction from 'action/world';
+import HashMap from 'declaretion/hashMap';
 
-let nextStateGenerator = {
-	_getNeighborFields(field) {
-		return [
-			{ x: field.x - 1, y: field.y - 1 },
-			{ x: field.x - 1, y: field.y },
-			{ x: field.x - 1, y: field.y + 1 },
-			{ x: field.x, y: field.y - 1 },
-			{ x: field.x, y: field.y + 1 },
-			{ x: field.x + 1, y: field.y - 1 },
-			{ x: field.x + 1, y: field.y },
-			{ x: field.x + 1, y: field.y + 1 }
-		];
-
-	},
-
-	getToChangeFields(fields) {
-		let result = {};
-		for(let key in fields) {
-			let field = fields[key];
-			let toChangeFields = this._getNeighborFields(field);
-
-			result[field.x + "_" + field.y] = field;
-			for(let toChangeField of toChangeFields) {
-				result[toChangeField.x + "_" + toChangeField.y] = toChangeField;
-			}
-		}
-		return result;
-	},
-
-	getFieldsToToggle(stateFields, changedFields) {
-		let result = {};
-		let toChangeFields = this.getToChangeFields(changedFields);
-		for(let key in toChangeFields) {
-			let toChangeField = toChangeFields[key];
-
-			let neighborFields = this._getNeighborFields(toChangeField);
-			let countLiveNeighborFields = 0;
-			for(let neighborField of neighborFields) {
-				if(stateFields[neighborField.x + "_" + neighborField.y]) {
-					countLiveNeighborFields++;
-				}
-			}
-
-			if(stateFields[toChangeField.x + "_" + toChangeField.y]) {
-				if(countLiveNeighborFields < 2 || countLiveNeighborFields > 3) {
-					result[toChangeField.x + "_" + toChangeField.y] = toChangeField;
-				}
-			} else {
-				if(countLiveNeighborFields == 3) {
-					result[toChangeField.x + "_" + toChangeField.y] = toChangeField;
-				}
-			}
-
-		}
-		return result;
-	} 
-}
+const stateSymbol = Symbol.for('private:store:state');
+const emitChangeSymbol = Symbol.for('private:store:emitChange');
+const startHandlerSymbol = Symbol.for('private:worldSrtore:startHandler');
+const stopHandlerSymbol = Symbol.for('private:worldSrtore:stopHandler');
+const resetHandlerSymbol = Symbol.for('private:worldSrtore:resetHandler');
+const setFieldHandlerSymbol = Symbol.for('private:worldSrtore:setFieldHandler');
+const setFieldsHandlerSymbol = Symbol.for('private:worldSrtore:setFieldsHandler');
 
 class WorldStore extends BaseStore {
-	constructor() {
-		super();
+	constructor(...props) {
+		super(...props);
 
-		this._state = {
-			launched: false,
-			width: 25,
-			height: 25,
-			fields: {} // key - "5_6" value - {x:5,y:6} if set: fill field else empty field 
-		}
-
-		this._toChangeFields = {};
-
-		Dispatcher.on(WorldAction.WORLD_START, this._startHandler.bind(this));
-		Dispatcher.on(WorldAction.WORLD_STOP, this._stopHandler.bind(this));
-		Dispatcher.on(WorldAction.WORLD_RESET, this._resetHandler.bind(this));
-		Dispatcher.on(WorldAction.WORLD_FIELD_TOGGLE, this._toggleFieldHandler.bind(this));
+		Dispatcher.on(WorldAction.START, this[startHandlerSymbol]);
+		Dispatcher.on(WorldAction.STOP, this[stopHandlerSymbol]);
+		Dispatcher.on(WorldAction.RESET, this[resetHandlerSymbol]);
+		Dispatcher.on(WorldAction.SET_FIELD, this[setFieldHandlerSymbol]);
+		Dispatcher.on(WorldAction.SET_FIELDS, this[setFieldsHandlerSymbol]);
 	}
 
-	/// private methods ///
-	
-	_toggleField(fieldX, fieldY) {
-		let key = fieldX + '_' + fieldY;
-		if(this._state.fields[key]) {
-			delete this._state.fields[key];
-		} else {
-			this._state.fields[key] = {
-				x: fieldX,
-				y: fieldY
+	[stateSymbol] = {
+		isLaunched: false,
+		width: 70,
+		height: 40,
+		// signature: key - {x:0, y:0}, value - {isLive: true}.
+		// if isLive = false then it field need to remove.
+		fields: new HashMap(),
+		changedFields: new HashMap(),
+	}
+
+	createField({ isLive = false } = { isLive: false }) {
+		return {
+			isLive,
+		};
+	}
+
+	isValidPoint(point) {
+		if (point.x < 0 || point.x >= this.width || point.y < 0 || point.y >= this.height) {
+			return false;
+		}
+		return true;
+	}
+
+	getField(point) {
+		return (this[stateSymbol].fields.get(point) || this.createField());
+	}
+
+	getFields() {
+		return this[stateSymbol].fields;
+	}
+
+	getNeighborFields(point) {
+		if (this.isValidPoint(point)) {
+			let neighborPoints = [
+				{ x: point.x - 1,	y: point.y - 1 	},
+				{ x: point.x - 1,	y: point.y 		},
+				{ x: point.x - 1,	y: point.y + 1 	},
+				{ x: point.x,		y: point.y - 1 	},
+				{ x: point.x,		y: point.y + 1 	},
+				{ x: point.x + 1,	y: point.y - 1 	},
+				{ x: point.x + 1,	y: point.y 		},
+				{ x: point.x + 1,	y: point.y + 1 	},
+			];
+
+			// path cycling map
+			neighborPoints = neighborPoints.map((neighborPoint) => {
+				const newNeighborPoint = {
+					x: neighborPoint.x,
+					y: neighborPoint.y,
+				};
+				if (neighborPoint.x < 0) {
+					newNeighborPoint.x = this[stateSymbol].width - 1;
+				}
+				if (neighborPoint.x >= this[stateSymbol].width) {
+					newNeighborPoint.x = 0;
+				}
+				if (neighborPoint.y < 0) {
+					newNeighborPoint.y = this[stateSymbol].height - 1;
+				}
+				if (neighborPoint.y >= this[stateSymbol].height) {
+					newNeighborPoint.y = 0;
+				}
+				return newNeighborPoint;
+			});
+
+			return new Map(neighborPoints.map(neighborPoint =>
+				[neighborPoint, this[stateSymbol].fields.get(neighborPoint) || this.createField()]));
+		}
+		return new Map();
+	}
+
+	getMayBeChangeFields() {
+		const result = new HashMap();
+
+		this[stateSymbol].changedFields.forEach((changedField, changedPoint) => {
+			const neighborFields = this.getNeighborFields(changedPoint);
+			neighborFields.forEach((neighborField, neighborPoint) =>
+				result.set(neighborPoint, neighborField));
+			result.set(changedPoint, changedField);
+		});
+
+		return result;
+	}
+
+	getToChangeFields() {
+		const result = new HashMap();
+		const mayBeChangeFields = this.getMayBeChangeFields();
+
+		mayBeChangeFields.forEach((mayBeChangeField, mayBeChangePoint) => {
+			let countLiveNeighborFields = 0;
+			const neighborFields = this.getNeighborFields(mayBeChangePoint);
+			neighborFields.forEach((neighborField) => {
+				if (neighborField.isLive) {
+					countLiveNeighborFields++;
+				}
+			});
+			if (mayBeChangeField.isLive) {
+				if (countLiveNeighborFields < 2 || countLiveNeighborFields > 3) {
+					result.set(mayBeChangePoint, this.createField());
+				}
+			} else if (countLiveNeighborFields === 3) {
+				result.set(mayBeChangePoint, this.createField({ isLive: true }));
+			}
+		});
+
+		return result;
+	}
+
+	setField(point, field) {
+		if (this.isValidPoint(point)) {
+			this[stateSymbol].changedFields.set(point, field);
+			if (field.isLive) {
+				this[stateSymbol].fields.set(point, field);
+			} else {
+				this[stateSymbol].fields.delete(point);
+				if (!this[stateSymbol].isLaunched) {
+					this[stateSymbol].changedFields.delete(point);
+				}
 			}
 		}
 	}
 
-	_toggleFields(fields) {
-		for(let key in fields) {
-			let field = fields[key];
-			this._toggleField(field.x, field.y);
-		}
+	setFields(fields) {
+		fields.forEach((field, point) => {
+			this.setField(point, field);
+		});
 	}
 
-	/// event handlers ///
-	
-	_startHandler() {
-		this._state.launched = true;
+	[startHandlerSymbol] = () => {
+		this[stateSymbol].isLaunched = true;
 
-		let changedFields = nextStateGenerator.getToChangeFields(this._state.fields);
+		this[emitChangeSymbol]();
 
-		let timer = setInterval(() => {
-			if(this._state.launched) {
-				changedFields = nextStateGenerator.getFieldsToToggle(this._state.fields, changedFields);
-				this._toggleFields(changedFields);
-
-				this._emitChanged();
+		const timer = setInterval(() => {
+			if (this[stateSymbol].isLaunched) {
+				const toChangeFields = this.getToChangeFields();
+				this[stateSymbol].changedFields.clear();
+				this.setFields(toChangeFields);
+				this[emitChangeSymbol]();
 			} else {
 				clearInterval(timer);
 			}
 		}, 300);
-
-		this._emitChanged();
 	}
-	_stopHandler() {
-		this._state.launched = false;
-		this._emitChanged();
+	[stopHandlerSymbol] = () => {
+		this[stateSymbol].isLaunched = false;
+		this[emitChangeSymbol]();
 	}
-	_resetHandler() {
-		this._state.fields = {};
-		this._emitChanged();
+	[resetHandlerSymbol] = () => {
+		this[stateSymbol].isLaunched = false;
+		this[stateSymbol].fields.clear();
+		this[stateSymbol].changedFields.clear();
+		this[emitChangeSymbol]();
 	}
-	_toggleFieldHandler(fieldX, fieldY) {
-		this._toggleField(fieldX, fieldY);
-		this._emitChanged();
+	[setFieldHandlerSymbol] = (point, field) => {
+		this.setField(point, field);
+		this[emitChangeSymbol]();
+	}
+	[setFieldsHandlerSymbol] = (fields) => {
+		this.setFields(fields);
+		this[emitChangeSymbol]();
 	}
 }
 

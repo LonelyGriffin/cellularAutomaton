@@ -1,90 +1,102 @@
 import React from 'react';
-import {Layer, Rect, Stage, Line} from 'react-konva';
+import { Layer, Rect, Stage, Line } from 'react-konva';
 import worldStore from 'store/world';
 import WorldAction from 'action/world';
 
+const getInitialState = () => {
+	const state = worldStore.getState();
+
+	return {
+		width: state.width,
+		height: state.height,
+		fields: state.fields,
+	};
+};
+
 export default class StandartMap extends React.Component {
-	static get defaultProps() {
-		return {
-			tileSize: 10
-		}
+	static propTypes = {
+		tileSize: React.PropTypes.number,
 	}
+	static defaultProps = {
+		tileSize: 10,
+	}
+
 	constructor(props) {
 		super(props);
-
-		let state = worldStore.getState();
-
-		this.state = {
-			width: state.width,
-			height: state.height,
-			fields: state.fields
-		}
 
 		worldStore.addListener((state) => {
 			this.setState({
 				width: state.width,
 				height: state.height,
-				fields: state.fields
+				fields: state.fields,
 			});
 		});
+
+		this.clickLayerHandler = this.clickLayerHandler.bind(this);
 	}
 
-	clickLayerHandler(e){
-		let event = e.nativeEvent,
-			field_x = Math.floor( event.offsetX / this.props.tileSize ),
-			field_y = Math.floor( event.offsetY / this.props.tileSize );
+	state = getInitialState();
 
-		WorldAction.toggle(field_x, field_y);
+	clickLayerHandler = (e) => {
+		const event = e.nativeEvent;
+		const point = {
+			x: Math.floor(event.offsetX / this.props.tileSize),
+			y: Math.floor(event.offsetY / this.props.tileSize),
+		};
+
+		WorldAction.set(point, worldStore.createField({ isLive: !worldStore.getField(point).isLive }));
 	}
 
 	render() {
+		const fields = [];
 
-		let fields = [];
+		this.state.fields.forEach((field, point) => fields.push(
+			<Rect
+				key={`${point.x}_${point.y}`}
+				x={this.props.tileSize * point.x} y={this.props.tileSize * point.y}
+				width={this.props.tileSize} height={this.props.tileSize}
+				fill="black"
+			/>,
+		));
 
-		for(let key in this.state.fields) {
-			let field = this.state.fields[key];
-			fields.push(
-				<Rect key={key}
-					x={ this.props.tileSize * field.x } y={ this.props.tileSize * field.y } 
-					width={ this.props.tileSize } height={ this.props.tileSize }
-					fill='black'
-				/>
+		const grid = [];
+		const gridHeight = this.props.tileSize * this.state.height;
+		const gridWidth = this.props.tileSize * this.state.width;
+
+		for (let y = 0; y <= this.state.height; y++) {
+			const yPx = y * this.props.tileSize;
+			grid.push(
+				<Line
+					key={`h_line_${y}`}
+					points={[0, yPx, gridWidth, yPx]}
+					stroke="gray"
+					strokeWidth="0.2"
+				/>,
 			);
+		}
+
+		for (let x = 0; x <= this.state.width; x++) {
+			const xPx = x * this.props.tileSize;
+			grid.push(
+				<Line
+					key={`v_line_${x}`}
+					points={[xPx, 0, xPx, gridWidth]}
+					stroke="gray"
+					strokeWidth="0.2"
+				/>,
+			);
+		}
+		const mapStyle = {
+			width: `${gridWidth}px`,
+			height: `${gridHeight}px`,
+			border: '1px solid gray',
 		};
-
-		let grid = [],
-			gridHeight = this.props.tileSize * this.state.height,
-			gridWidth = this.props.tileSize * this.state.width;
-
-		for(let y = 0; y <= this.state.height; y++) {
-			let y_px = y * this.props.tileSize;
-			grid.push(
-				<Line key={ 'h_line_' + y } 
-					points= { [ 0, y_px, gridWidth, y_px ] }
-					stroke='gray'
-					strokeWidth='0.2'
-				/>
-			);
-		}
-
-		for(let x = 0; x <= this.state.width; x++) {
-			let x_px = x * this.props.tileSize;
-			grid.push(
-				<Line key={ 'v_line_' + x } 
-					points= { [ x_px , 0, x_px, gridWidth ] }
-					stroke='gray'
-					strokeWidth='0.2'
-				/>
-			);
-		}
-
-
 		return (
-			<div onClick={ (e) => this.clickLayerHandler(e) } style={{ width: gridWidth + 'px', height: gridHeight + 'px' }}>
-				<Stage width={ gridWidth } height={ gridHeight }>
+			<div onClick={this.clickLayerHandler} style={mapStyle} >
+				<Stage width={gridWidth} height={gridHeight}>
 					<Layer>
-						{ fields }
-						{ grid }
+						{fields}
+						{grid}
 					</Layer>
 				</Stage>
 			</div>

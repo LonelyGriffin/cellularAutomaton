@@ -10,39 +10,39 @@ export default class SimulateCtrls extends React.Component {
 	constructor(props) {
 		super(props);
 
-		this.state = {
-			launched: false
-		}
-
 		worldStore.addListener((state) => {
 			this.setState({
-				launched: state.launched
+				isLaunched: state.isLaunched,
 			});
 		});
 	}
 
-	playHandler() {
+	state = {
+		isLaunched: false,
+	}
+
+	playHandler = () => {
 		WorldAction.start();
 	}
 
-	pauseHandler() {
+	pauseHandler = () => {
 		WorldAction.stop();
 	}
 
-	replayHandler() {
+	replayHandler = () => {
 		WorldAction.reset();
 	}
 
 	render() {
 		return (
 			<div>
-				<IconButton onClick={ () => this.replayHandler() } className={ this.state.launched ? 'hide' : '' } >
+				<IconButton onClick={this.replayHandler} className={this.state.isLaunched ? 'hide' : ''} >
 					<Replay />
 				</IconButton>
-				<IconButton onClick={ () => this.playHandler() } className={ this.state.launched ? 'hide' : '' } >
+				<IconButton onClick={this.playHandler} className={this.state.isLaunched ? 'hide' : ''} >
 					<Play />
 				</IconButton>
-				<IconButton onClick={ () => this.pauseHandler() } className={ this.state.launched ? '' : 'hide' } >
+				<IconButton onClick={this.pauseHandler} className={this.state.isLaunched ? '' : 'hide'} >
 					<Pause />
 				</IconButton>
 			</div>

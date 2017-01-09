@@ -17,6 +17,13 @@ module.exports = function(_path) {
             filename: "js/app.js"
         },
         module: {
+            preLoaders: [
+                {
+                  test: /(\.js|\.jsx)$/,
+                  exclude: /node_modules/,
+                  loader: 'eslint-loader'
+                },
+            ],
             loaders: [
                 {
                     test: /\.js$/,
@@ -43,6 +50,10 @@ module.exports = function(_path) {
                     loader: ExtractTextPlugin.extract(["css-loader"])
                 },
                 {
+                    test: /\.json$/,
+                    loader: "json"
+                },
+                {
                     test: /\.less$/,
                     loader: ExtractTextPlugin.extract(["css-loader", "less-loader"])
                 }
@@ -53,7 +64,16 @@ module.exports = function(_path) {
         ],
         resolve: {
             modulesDirectories: ["node_modules", "src"],
-            extensions: ["", ".js", ".jsx"]
+            extensions: ["", ".js", ".jsx", '.json']
+        },
+        eslint: {
+            configFile: path.join(_path, ".eslintrc")
+        },
+        externals: {
+            'cheerio': 'window',
+            'react/addons': true,
+            'react/lib/ExecutionEnvironment': true,
+            'react/lib/ReactContext': true
         }
     };
 };

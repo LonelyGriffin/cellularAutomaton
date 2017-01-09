@@ -1,3 +1,3 @@
-let EventEmitter = require('events').EventEmitter;
+import Observer from 'declaretion/observer';
 
-export default new EventEmitter();
+export default new Observer();

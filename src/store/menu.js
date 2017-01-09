@@ -1,26 +1,29 @@
-import Dispatcher from "service/dispatcher";
-import BaseStore from "store/base";
-import MenuAction from "action/menu";
+import Dispatcher from 'service/dispatcher';
+import BaseStore from 'store/base';
+import MenuAction from 'action/menu';
+
+const stateSymbol = Symbol.for('private:store:state');
+const emitChange = Symbol.for('private:store:emitChange');
 
 class MenuStore extends BaseStore {
 	constructor() {
 		super();
 
-		this._state = {
-			opened: false
-		}
-
-		Dispatcher.on(MenuAction.MENU_OPEN, this._openHandler.bind(this));
-		Dispatcher.on(MenuAction.MENU_CLOSE, this._closeHandler.bind(this));
+		Dispatcher.on(MenuAction.OPEN, this.openHandler.bind(this));
+		Dispatcher.on(MenuAction.CLOSE, this.closeHandler.bind(this));
 	}
 
-	_openHandler() {
-		this._state.opened = true;
-		this._emitChanged();
+	[stateSymbol] = {
+		opened: false,
 	}
-	_closeHandler() {
-		this._state.opened = false;
-		this._emitChanged();
+
+	openHandler = () => {
+		this[stateSymbol].opened = true;
+		this[emitChange]();
+	}
+	closeHandler = () => {
+		this[stateSymbol].opened = false;
+		this[emitChange]();
 	}
 }
 

@@ -1,20 +1,23 @@
-let EventEmitter = require('events').EventEmitter;
+import Observer from 'declaretion/observer';
+
+const dispatcherSymbol = Symbol.for('private:store:dispatcher');
+const stateSymbol = Symbol.for('private:store:state');
+const emitChange = Symbol.for('private:store:emitChange');
 
 export default class BaseStore {
 	constructor() {
-		this._dispatcher = new EventEmitter();
-		this._state = {};
+		this[dispatcherSymbol] = new Observer();
+		this[stateSymbol] = {};
 	}
-
-	_emitChanged() {
-		this._dispatcher.emit("change", this._state);
+	[emitChange] = () => {
+		this[dispatcherSymbol].fire('change', this[stateSymbol]);
 	}
 
 	addListener(callback) {
-		this._dispatcher.on("change", callback);
+		this[dispatcherSymbol].on('change', callback);
 	}
 
-	getState(){
-		return this._state;
+	getState() {
+		return this[stateSymbol];
 	}
 }
