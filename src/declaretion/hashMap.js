@@ -28,5 +28,13 @@ export default class HashMap {
 	has(key) {
 		return this[mapSymbol].has(JSON.stringify(key));
 	}
+	clone() {
+		const clone = new HashMap();
+		this.forEach((v, k) => clone.set(k, v));
+		return clone;
+	}
+	size() {
+		return this[mapSymbol].size;
+	}
 }
 

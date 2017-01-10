@@ -72,7 +72,7 @@ export default class Menu extends React.Component {
 							name="worldWidth"
 							value={this.state.world.width}
 							onChange={this.changeWorldWidthHandler}
-							onBlur={this.blurWorldWidthHandler}Blur
+							onBlur={this.blurWorldWidthHandler}
 						/>
 					</div>
 					<div className="option-item">

@@ -1,4 +1,3 @@
-import Dispatcher from 'service/dispatcher';
 import BaseStore from 'store/base';
 import WorldAction from 'action/world';
 import MenuAction from 'action/menu';
@@ -6,33 +5,24 @@ import HashMap from 'declaretion/hashMap';
 
 const stateSymbol = Symbol.for('private:store:state');
 const emitChangeSymbol = Symbol.for('private:store:emitChange');
-const applySettingsHandlerSymbol = Symbol.for('private:worldSrtore:applySettingHandler');
-const startHandlerSymbol = Symbol.for('private:worldSrtore:startHandler');
-const stopHandlerSymbol = Symbol.for('private:worldSrtore:stopHandler');
-const resetHandlerSymbol = Symbol.for('private:worldSrtore:resetHandler');
-const setFieldHandlerSymbol = Symbol.for('private:worldSrtore:setFieldHandler');
-const setFieldsHandlerSymbol = Symbol.for('private:worldSrtore:setFieldsHandler');
+const handlersSymbol = Symbol.for('private:store:handlers');
 
 class WorldStore extends BaseStore {
-	constructor(...props) {
-		super(...props);
-
-		Dispatcher.on(MenuAction.APPLY_WORLD_SETTINGS, this[applySettingsHandlerSymbol]);
-		Dispatcher.on(WorldAction.START, this[startHandlerSymbol]);
-		Dispatcher.on(WorldAction.STOP, this[stopHandlerSymbol]);
-		Dispatcher.on(WorldAction.RESET, this[resetHandlerSymbol]);
-		Dispatcher.on(WorldAction.SET_FIELD, this[setFieldHandlerSymbol]);
-		Dispatcher.on(WorldAction.SET_FIELDS, this[setFieldsHandlerSymbol]);
-	}
-
 	[stateSymbol] = {
 		isLaunched: false,
+		isFirstFrame: true,
 		width: 70,
 		height: 40,
 		// signature: key - {x:0, y:0}, value - {isLive: true}.
 		// if isLive = false then it field need to remove.
+		firstFrame: new HashMap(),
 		fields: new HashMap(),
 		changedFields: new HashMap(),
+	}
+	constructor(...props) {
+		super(...props);
+
+		this.initHandlers();
 	}
 
 	createField({ isLive = false } = { isLive: false }) {
@@ -138,10 +128,16 @@ class WorldStore extends BaseStore {
 			this[stateSymbol].changedFields.set(point, field);
 			if (field.isLive) {
 				this[stateSymbol].fields.set(point, field);
+				if (this[stateSymbol].isFirstFrame) {
+					this[stateSymbol].firstFrame.set(point, field);
+				}
 			} else {
 				this[stateSymbol].fields.delete(point);
 				if (!this[stateSymbol].isLaunched) {
 					this[stateSymbol].changedFields.delete(point);
+				}
+				if (this[stateSymbol].isFirstFrame) {
+					this[stateSymbol].firstFrame.delete(point);
 				}
 			}
 		}
@@ -153,55 +149,83 @@ class WorldStore extends BaseStore {
 		});
 	}
 
-	[applySettingsHandlerSymbol] = ({ width, height }) => {
-		let isChanged = false;
-		if (width && width !== this[stateSymbol].width) {
-			this[stateSymbol].width = width;
-			isChanged = true;
-		}
-		if (height && height !== this[stateSymbol].height) {
-			this[stateSymbol].height = height;
-			isChanged = true;
-		}
-		if (isChanged) {
-			this[emitChangeSymbol]();
-		}
-	}
-
-	[startHandlerSymbol] = () => {
+	start() {
 		this[stateSymbol].isLaunched = true;
-
-		this[emitChangeSymbol]();
-
+		this[stateSymbol].isFirstFrame = false;
 		const timer = setInterval(() => {
 			if (this[stateSymbol].isLaunched) {
 				const toChangeFields = this.getToChangeFields();
-				this[stateSymbol].changedFields.clear();
-				this.setFields(toChangeFields);
+				if (toChangeFields.size() > 0) {
+					this[stateSymbol].changedFields.clear();
+					this.setFields(toChangeFields);
+				} else {
+					this.pause();
+				}
 				this[emitChangeSymbol]();
 			} else {
 				clearInterval(timer);
 			}
 		}, 300);
 	}
-	[stopHandlerSymbol] = () => {
+
+	pause() {
 		this[stateSymbol].isLaunched = false;
-		this[emitChangeSymbol]();
 	}
-	[resetHandlerSymbol] = () => {
-		this[stateSymbol].isLaunched = false;
+
+	stop() {
+		this.pause();
+		this[stateSymbol].isFirstFrame = true;
+		this[stateSymbol].fields = this[stateSymbol].firstFrame.clone();
+		this[stateSymbol].changedFields = this[stateSymbol].firstFrame.clone();
+	}
+
+	reset() {
+		this.pause();
+		this[stateSymbol].isFirstFrame = true;
 		this[stateSymbol].fields.clear();
 		this[stateSymbol].changedFields.clear();
-		this[emitChangeSymbol]();
+		this[stateSymbol].firstFrame.clear();
 	}
-	[setFieldHandlerSymbol] = (point, field) => {
-		this.setField(point, field);
-		this[emitChangeSymbol]();
-	}
-	[setFieldsHandlerSymbol] = (fields) => {
-		this.setFields(fields);
-		this[emitChangeSymbol]();
+
+	[handlersSymbol] = {
+		[WorldAction.RESET]() {
+			this.reset();
+			this[emitChangeSymbol]();
+		},
+		[WorldAction.START]() {
+			this.start();
+			this[emitChangeSymbol]();
+		},
+		[WorldAction.PAUSE]() {
+			this.pause();
+			this[emitChangeSymbol]();
+		},
+		[WorldAction.STOP]() {
+			this.stop();
+			this[emitChangeSymbol]();
+		},
+		[WorldAction.SET_FIELD](point, field) {
+			this.setField(point, field);
+			this[emitChangeSymbol]();
+		},
+		[WorldAction.SET_FIELDS](fields) {
+			this.setFields(fields);
+			this[emitChangeSymbol]();
+		},
+		[MenuAction.APPLY_WORLD_SETTINGS]({ width, height }) {
+			let isChanged = false;
+			if (width && width !== this[stateSymbol].width) {
+				this[stateSymbol].width = width;
+				isChanged = true;
+			}
+			if (height && height !== this[stateSymbol].height) {
+				this[stateSymbol].height = height;
+				isChanged = true;
+			}
+			if (isChanged) {
+				this[emitChangeSymbol]();
+			}
+		},
 	}
 }
-
 export default new WorldStore();
