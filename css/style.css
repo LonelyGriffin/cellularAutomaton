@@ -1,3 +1,28 @@
+.menu .body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin: auto;
+  padding-top: 30px;
+  width: 80%;
+}
+.menu .body .option-item {
+  display: flex;
+  justify-content: space-between;
+  height: 48px;
+  max-height: 48px;
+}
+.menu .body .option-item .title {
+  height: 48px;
+  line-height: 48px;
+}
+.menu .body .option-item .action {
+  height: 48px;
+  max-width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
 html {
   margin: 0;
   height: 100%;
