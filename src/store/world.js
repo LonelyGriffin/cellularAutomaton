@@ -13,6 +13,8 @@ class WorldStore extends BaseStore {
 		isFirstFrame: true,
 		width: 70,
 		height: 40,
+		verticalFixation: true,
+		horizontalFixation: true,
 		// signature: key - {x:0, y:0}, value - {isLive: true}.
 		// if isLive = false then it field need to remove.
 		firstFrame: new HashMap(),
@@ -59,26 +61,51 @@ class WorldStore extends BaseStore {
 				{ x: point.x + 1,	y: point.y + 1 	},
 			];
 
-			// path cycling map
-			neighborPoints = neighborPoints.map((neighborPoint) => {
-				const newNeighborPoint = {
-					x: neighborPoint.x,
-					y: neighborPoint.y,
-				};
-				if (neighborPoint.x < 0) {
-					newNeighborPoint.x = this[stateSymbol].width - 1;
-				}
-				if (neighborPoint.x >= this[stateSymbol].width) {
-					newNeighborPoint.x = 0;
-				}
-				if (neighborPoint.y < 0) {
-					newNeighborPoint.y = this[stateSymbol].height - 1;
-				}
-				if (neighborPoint.y >= this[stateSymbol].height) {
-					newNeighborPoint.y = 0;
-				}
-				return newNeighborPoint;
-			});
+			// path fixation
+			if (this[stateSymbol].horizontalFixation) {
+				neighborPoints = neighborPoints.map((neighborPoint) => {
+					const newNeighborPoint = {
+						x: neighborPoint.x,
+						y: neighborPoint.y,
+					};
+					if (neighborPoint.x < 0) {
+						newNeighborPoint.x = this[stateSymbol].width - 1;
+					}
+					if (neighborPoint.x >= this[stateSymbol].width) {
+						newNeighborPoint.x = 0;
+					}
+					return newNeighborPoint;
+				});
+			} else {
+				neighborPoints = neighborPoints.filter((neighborPoint) => {
+					if (neighborPoint.x < 0 || neighborPoint.x >= this[stateSymbol].width) {
+						return false;
+					}
+					return true;
+				});
+			}
+			if (this[stateSymbol].verticalFixation) {
+				neighborPoints = neighborPoints.map((neighborPoint) => {
+					const newNeighborPoint = {
+						x: neighborPoint.x,
+						y: neighborPoint.y,
+					};
+					if (neighborPoint.y < 0) {
+						newNeighborPoint.y = this[stateSymbol].height - 1;
+					}
+					if (neighborPoint.y >= this[stateSymbol].height) {
+						newNeighborPoint.y = 0;
+					}
+					return newNeighborPoint;
+				});
+			} else {
+				neighborPoints = neighborPoints.filter((neighborPoint) => {
+					if (neighborPoint.y < 0 || neighborPoint.y >= this[stateSymbol].height) {
+						return false;
+					}
+					return true;
+				});
+			}
 
 			return new Map(neighborPoints.map(neighborPoint =>
 				[neighborPoint, this[stateSymbol].fields.get(neighborPoint) || this.createField()]));
@@ -212,7 +239,7 @@ class WorldStore extends BaseStore {
 			this.setFields(fields);
 			this[emitChangeSymbol]();
 		},
-		[MenuAction.APPLY_WORLD_SETTINGS]({ width, height }) {
+		[MenuAction.APPLY_WORLD_SETTINGS]({ width, height, verticalFixation = true, horizontalFixation = true }) {
 			let isChanged = false;
 			if (width && width !== this[stateSymbol].width) {
 				this[stateSymbol].width = width;
@@ -220,6 +247,14 @@ class WorldStore extends BaseStore {
 			}
 			if (height && height !== this[stateSymbol].height) {
 				this[stateSymbol].height = height;
+				isChanged = true;
+			}
+			if (verticalFixation !== this[stateSymbol].verticalFixation) {
+				this[stateSymbol].verticalFixation = verticalFixation;
+				isChanged = true;
+			}
+			if (horizontalFixation !== this[stateSymbol].horizontalFixation) {
+				this[stateSymbol].horizontalFixation = horizontalFixation;
 				isChanged = true;
 			}
 			if (isChanged) {

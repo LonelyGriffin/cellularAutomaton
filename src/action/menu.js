@@ -5,6 +5,8 @@ const MenuAction = {
 	CLOSE: 'MENU_CLOSE',
 	CHANGE_SETTING_WIDTH: 'MENU_CHANGE_SETTING_WIDTH',
 	CHANGE_SETTING_HEIGHT: 'MENU_CHANGE_SETTING_HEIGHT',
+	CHANGE_SETTING_VERTICAL_FIXATION: 'MENU_CHANGE_SETTING_VERTICAL_FIXATION',
+	CHANGE_SETTING_HORIZONTAL_FIXATION: 'MENU_CHANGE_SETTING_HORIZONTAL_FIXATION',
 	APPLY_WORLD_SETTINGS: 'MENU_APPLY_WORLD_SETTINGS',
 
 	open() {
@@ -19,6 +21,12 @@ const MenuAction = {
 		},
 		height(newHeight, hardValidation) {
 			Dispatcher.fire(MenuAction.CHANGE_SETTING_HEIGHT, newHeight, hardValidation);
+		},
+		verticalFixation() {
+			Dispatcher.fire(MenuAction.CHANGE_SETTING_VERTICAL_FIXATION);
+		},
+		horizontalFixation() {
+			Dispatcher.fire(MenuAction.CHANGE_SETTING_HORIZONTAL_FIXATION);
 		},
 	},
 	applyWorldSettings(settings) {

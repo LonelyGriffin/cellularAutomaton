@@ -41,6 +41,8 @@ class MenuStore extends BaseStore {
 		world: {
 			width: worldDefaultState.width,
 			height: worldDefaultState.height,
+			verticalFixation: worldDefaultState.verticalFixation,
+			horizontalFixation: worldDefaultState.horizontalFixation,
 		},
 	}
 
@@ -85,6 +87,14 @@ class MenuStore extends BaseStore {
 				this[stateSymbol].world.height =
 					Validate.isNumber(newHeight) ? newHeight : this[stateSymbol].world.height;
 			}
+			this[emitChangeSymbol]();
+		},
+		[MenuAction.CHANGE_SETTING_VERTICAL_FIXATION]() {
+			this[stateSymbol].world.verticalFixation = !this[stateSymbol].world.verticalFixation;
+			this[emitChangeSymbol]();
+		},
+		[MenuAction.CHANGE_SETTING_HORIZONTAL_FIXATION]() {
+			this[stateSymbol].world.horizontalFixation = !this[stateSymbol].world.horizontalFixation;
 			this[emitChangeSymbol]();
 		},
 	}
