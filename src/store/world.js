@@ -1,10 +1,12 @@
 import Dispatcher from 'service/dispatcher';
 import BaseStore from 'store/base';
 import WorldAction from 'action/world';
+import MenuAction from 'action/menu';
 import HashMap from 'declaretion/hashMap';
 
 const stateSymbol = Symbol.for('private:store:state');
 const emitChangeSymbol = Symbol.for('private:store:emitChange');
+const applySettingsHandlerSymbol = Symbol.for('private:worldSrtore:applySettingHandler');
 const startHandlerSymbol = Symbol.for('private:worldSrtore:startHandler');
 const stopHandlerSymbol = Symbol.for('private:worldSrtore:stopHandler');
 const resetHandlerSymbol = Symbol.for('private:worldSrtore:resetHandler');
@@ -15,6 +17,7 @@ class WorldStore extends BaseStore {
 	constructor(...props) {
 		super(...props);
 
+		Dispatcher.on(MenuAction.APPLY_WORLD_SETTINGS, this[applySettingsHandlerSymbol]);
 		Dispatcher.on(WorldAction.START, this[startHandlerSymbol]);
 		Dispatcher.on(WorldAction.STOP, this[stopHandlerSymbol]);
 		Dispatcher.on(WorldAction.RESET, this[resetHandlerSymbol]);
@@ -148,6 +151,21 @@ class WorldStore extends BaseStore {
 		fields.forEach((field, point) => {
 			this.setField(point, field);
 		});
+	}
+
+	[applySettingsHandlerSymbol] = ({ width, height }) => {
+		let isChanged = false;
+		if (width && width !== this[stateSymbol].width) {
+			this[stateSymbol].width = width;
+			isChanged = true;
+		}
+		if (height && height !== this[stateSymbol].height) {
+			this[stateSymbol].height = height;
+			isChanged = true;
+		}
+		if (isChanged) {
+			this[emitChangeSymbol]();
+		}
 	}
 
 	[startHandlerSymbol] = () => {

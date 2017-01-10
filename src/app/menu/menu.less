@@ -1,0 +1,28 @@
+@option-item--height: 48px;
+
+.menu {
+	.body {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+		margin: auto;
+		padding-top: 30px;
+		width: 80%;
+
+		.option-item {
+			display: flex;
+			justify-content: space-between;
+			height: @option-item--height;
+			max-height: @option-item--height;
+
+			.title {
+				height: @option-item--height;
+				line-height: @option-item--height;
+			}
+
+			.action {
+				height: @option-item--height;
+			}
+		}
+	}
+}

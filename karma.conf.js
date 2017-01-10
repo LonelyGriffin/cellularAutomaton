@@ -16,7 +16,7 @@ module.exports = function(config) {
 
     // spec файлы
     files: [
-      'src/**/*.spec.js'
+      'src/**/*.spec.js', 'src/**/*.spec.jsx'
     ],
 
     frameworks: [ 'chai', 'jasmine' ],
@@ -25,7 +25,8 @@ module.exports = function(config) {
     reporters: ['mocha', 'coverage'],
 
     preprocessors: {
-      'src/**/*.spec.js': ['webpack', 'sourcemap']
+      'src/**/*.spec.js': ['webpack', 'sourcemap'],
+      'src/**/*.spec.jsx': ['webpack', 'sourcemap'],
     },
 
     plugins: [

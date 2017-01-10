@@ -80,6 +80,7 @@
     "react-addons-css-transition-group": "^15.4.1",
     "react-dom": "^15.4.1",
     "react-konva": "^1.1.1",
+    "react-material-ui-number-input": "^1.0.4",
     "react-tap-event-plugin": "^2.0.1"
   }
 }

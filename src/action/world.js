@@ -1,11 +1,11 @@
 import Dispatcher from 'service/dispatcher';
 
 export default {
-	START: 'WORLD:START',
-	STOP: 'WORLD:STOP',
-	RESET: 'WORLD:RESET',
-	SET_FIELD: 'WORLD:FIELD:SET',
-	SET_FIELDS: 'WORLD:FIELDS:SET',
+	START: 'WORLD_START',
+	STOP: 'WORLD_STOP',
+	RESET: 'WORLD_RESET',
+	SET_FIELD: 'WORLD_FIELD_SET',
+	SET_FIELDS: 'WORLD_FIELDS_SET',
 
 	start() {
 		Dispatcher.fire(this.START);
