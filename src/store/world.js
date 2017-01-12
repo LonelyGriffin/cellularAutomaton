@@ -11,6 +11,8 @@ class WorldStore extends BaseStore {
 	[stateSymbol] = {
 		isLaunched: false,
 		isFirstFrame: true,
+		isExceedingHistoryLimit: false,
+		historyLimit: 100,
 		width: 70,
 		height: 40,
 		verticalFixation: true,
@@ -20,6 +22,7 @@ class WorldStore extends BaseStore {
 		firstFrame: new HashMap(),
 		fields: new HashMap(),
 		changedFields: new HashMap(),
+		history: [],
 	}
 	constructor(...props) {
 		super(...props);
@@ -178,16 +181,9 @@ class WorldStore extends BaseStore {
 
 	start() {
 		this[stateSymbol].isLaunched = true;
-		this[stateSymbol].isFirstFrame = false;
 		const timer = setInterval(() => {
 			if (this[stateSymbol].isLaunched) {
-				const toChangeFields = this.getToChangeFields();
-				if (toChangeFields.size() > 0) {
-					this[stateSymbol].changedFields.clear();
-					this.setFields(toChangeFields);
-				} else {
-					this.pause();
-				}
+				this.redo();
 				this[emitChangeSymbol]();
 			} else {
 				clearInterval(timer);
@@ -204,14 +200,53 @@ class WorldStore extends BaseStore {
 		this[stateSymbol].isFirstFrame = true;
 		this[stateSymbol].fields = this[stateSymbol].firstFrame.clone();
 		this[stateSymbol].changedFields = this[stateSymbol].firstFrame.clone();
+		this[stateSymbol].history = [];
+		this[stateSymbol].isExceedingHistoryLimit = false;
 	}
 
 	reset() {
-		this.pause();
-		this[stateSymbol].isFirstFrame = true;
+		this.stop();
 		this[stateSymbol].fields.clear();
 		this[stateSymbol].changedFields.clear();
 		this[stateSymbol].firstFrame.clear();
+	}
+
+	redo() {
+		const toChangeFields = this.getToChangeFields();
+		if (toChangeFields.size() > 0) {
+			this[stateSymbol].isFirstFrame = false;
+			this[stateSymbol].changedFields.clear();
+			this[stateSymbol].history.push(toChangeFields);
+			this.setFields(toChangeFields);
+			if (this[stateSymbol].history.length > this[stateSymbol].historyLimit) {
+				this[stateSymbol].isExceedingHistoryLimit = true;
+				do {
+					this[stateSymbol].history.shift();
+				} while (this[stateSymbol].history.length > this[stateSymbol].historyLimit);
+			}
+		} else {
+			this.pause();
+		}
+	}
+
+	undo() {
+		const history = this[stateSymbol].history;
+		const toChangeFields = history.pop();
+
+		if (toChangeFields) {
+			const reversToChangeFields = new HashMap();
+			toChangeFields.forEach((field, point) => {
+				reversToChangeFields.set(point, this.createField({ isLive: !field.isLive }));
+			});
+			this.setFields(reversToChangeFields);
+		}
+		if (history.length > 0) {
+			this[stateSymbol].changedField = history[history.length - 1].clone();
+		} else if (!this[stateSymbol].isExceedingHistoryLimit) {
+			this[stateSymbol].changedField = this[stateSymbol].firstFrame.clone();
+			this[stateSymbol].fields = this[stateSymbol].firstFrame.clone();
+			this[stateSymbol].isFirstFrame = true;
+		}
 	}
 
 	[handlersSymbol] = {
@@ -229,6 +264,14 @@ class WorldStore extends BaseStore {
 		},
 		[WorldAction.STOP]() {
 			this.stop();
+			this[emitChangeSymbol]();
+		},
+		[WorldAction.REDO]() {
+			this.redo();
+			this[emitChangeSymbol]();
+		},
+		[WorldAction.UNDO]() {
+			this.undo();
 			this[emitChangeSymbol]();
 		},
 		[WorldAction.SET_FIELD](point, field) {
