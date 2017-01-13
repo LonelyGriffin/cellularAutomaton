@@ -5,6 +5,8 @@ import Drawer from 'material-ui/Drawer';
 import TextField from 'material-ui/TextField';
 import FlatButton from 'material-ui/FlatButton';
 import Toggle from 'material-ui/Toggle';
+import SelectField from 'material-ui/SelectField';
+import MenuItem from 'material-ui/MenuItem';
 
 export default class Menu extends React.Component {
 	static propTypes = {
@@ -28,6 +30,7 @@ export default class Menu extends React.Component {
 		this.applySettingsHandler = this.applySettingsHandler.bind(this);
 		this.changeVerticalFixationHandler = this.changeVerticalFixationHandler.bind(this);
 		this.changeHorizontalFixationHandler = this.changeHorizontalFixationHandler.bind(this);
+		this.changeWorldTypeHandler = this.changeWorldTypeHandler.bind(this);
 	}
 	closeMenuHandler = () => {
 		this.props.action.applyWorldSettings(this.state.world);
@@ -54,6 +57,9 @@ export default class Menu extends React.Component {
 	}
 	changeHorizontalFixationHandler = () => {
 		this.props.action.changeSetting.horizontalFixation();
+	}
+	changeWorldTypeHandler = (e, i, value) => {
+		this.props.action.changeSetting.type(value);
 	}
 	render() {
 		const applyButton = <FlatButton label="Apply" onClick={this.applySettingsHandler} />;
@@ -110,6 +116,18 @@ export default class Menu extends React.Component {
 								toggled={this.state.world.horizontalFixation}
 								onToggle={this.changeHorizontalFixationHandler}
 							/>
+						</span>
+					</div>
+					<div className="option-item">
+						<span className="title">{'Type:'}</span>
+						<span className="action">
+							<SelectField
+								value={this.state.world.type}
+								onChange={this.changeWorldTypeHandler}
+							>
+								<MenuItem value={this.state.worldTypes.SQUERY} primaryText="Squery" />
+								<MenuItem value={this.state.worldTypes.HEX} primaryText="Hex" />
+							</SelectField>
 						</span>
 					</div>
 				</div>

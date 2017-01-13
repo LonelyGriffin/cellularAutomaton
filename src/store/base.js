@@ -3,7 +3,7 @@ import Dispatcher from 'service/dispatcher';
 
 const dispatcherSymbol = Symbol('private:store:dispatcher');
 const stateSymbol = Symbol.for('private:store:state');
-const emitChange = Symbol.for('private:store:emitChange');
+const emitChangeSymbol = Symbol.for('private:store:emitChange');
 const handlersSymbol = Symbol.for('private:store:handlers');
 
 export default class BaseStore {
@@ -12,7 +12,7 @@ export default class BaseStore {
 		this[stateSymbol] = {};
 		this.initHandlers();
 	}
-	[emitChange] = () => {
+	[emitChangeSymbol] = () => {
 		this[dispatcherSymbol].fire('change', this[stateSymbol]);
 	}
 	[handlersSymbol] = []

@@ -8,7 +8,13 @@ const emitChangeSymbol = Symbol.for('private:store:emitChange');
 const handlersSymbol = Symbol.for('private:store:handlers');
 
 class WorldStore extends BaseStore {
+	TYPE = {
+		SQUERY: 'WORLD_STORE_SQUERY_TYPE',
+		HEX: 'WORLD_STORE_HEX_TYPE',
+	};
+
 	[stateSymbol] = {
+		type: this.TYPE.SQUERY,
 		isLaunched: false,
 		isFirstFrame: true,
 		isExceedingHistoryLimit: false,
@@ -23,7 +29,8 @@ class WorldStore extends BaseStore {
 		fields: new HashMap(),
 		changedFields: new HashMap(),
 		history: [],
-	}
+	};
+
 	constructor(...props) {
 		super(...props);
 
@@ -37,7 +44,7 @@ class WorldStore extends BaseStore {
 	}
 
 	isValidPoint(point) {
-		if (point.x < 0 || point.x >= this.width || point.y < 0 || point.y >= this.height) {
+		if (point.x < 0 || point.x >= this[stateSymbol].width || point.y < 0 || point.y >= this[stateSymbol].height) {
 			return false;
 		}
 		return true;
@@ -51,33 +58,32 @@ class WorldStore extends BaseStore {
 		return this[stateSymbol].fields;
 	}
 
+	getNeighborPoints(point) {
+		return [
+			{ x: point.x - 1,	y: point.y - 1 	},
+			{ x: point.x - 1,	y: point.y 		},
+			{ x: point.x - 1,	y: point.y + 1 	},
+			{ x: point.x,		y: point.y - 1 	},
+			{ x: point.x,		y: point.y + 1 	},
+			{ x: point.x + 1,	y: point.y - 1 	},
+			{ x: point.x + 1,	y: point.y 		},
+			{ x: point.x + 1,	y: point.y + 1 	},
+		];
+	}
+
 	getNeighborFields(point) {
 		if (this.isValidPoint(point)) {
-			let neighborPoints = [
-				{ x: point.x - 1,	y: point.y - 1 	},
-				{ x: point.x - 1,	y: point.y 		},
-				{ x: point.x - 1,	y: point.y + 1 	},
-				{ x: point.x,		y: point.y - 1 	},
-				{ x: point.x,		y: point.y + 1 	},
-				{ x: point.x + 1,	y: point.y - 1 	},
-				{ x: point.x + 1,	y: point.y 		},
-				{ x: point.x + 1,	y: point.y + 1 	},
-			];
+			let neighborPoints = this.getNeighborPoints(point);
 
 			// path fixation
 			if (this[stateSymbol].horizontalFixation) {
-				neighborPoints = neighborPoints.map((neighborPoint) => {
-					const newNeighborPoint = {
-						x: neighborPoint.x,
-						y: neighborPoint.y,
-					};
+				neighborPoints.forEach((neighborPoint, index) => {
 					if (neighborPoint.x < 0) {
-						newNeighborPoint.x = this[stateSymbol].width - 1;
+						neighborPoints[index].x = this[stateSymbol].width - 1;
 					}
 					if (neighborPoint.x >= this[stateSymbol].width) {
-						newNeighborPoint.x = 0;
+						neighborPoints[index].x = 0;
 					}
-					return newNeighborPoint;
 				});
 			} else {
 				neighborPoints = neighborPoints.filter((neighborPoint) => {
@@ -88,18 +94,13 @@ class WorldStore extends BaseStore {
 				});
 			}
 			if (this[stateSymbol].verticalFixation) {
-				neighborPoints = neighborPoints.map((neighborPoint) => {
-					const newNeighborPoint = {
-						x: neighborPoint.x,
-						y: neighborPoint.y,
-					};
+				neighborPoints.forEach((neighborPoint, index) => {
 					if (neighborPoint.y < 0) {
-						newNeighborPoint.y = this[stateSymbol].height - 1;
+						neighborPoints[index].y = this[stateSymbol].height - 1;
 					}
 					if (neighborPoint.y >= this[stateSymbol].height) {
-						newNeighborPoint.y = 0;
+						neighborPoints[index].y = 0;
 					}
-					return newNeighborPoint;
 				});
 			} else {
 				neighborPoints = neighborPoints.filter((neighborPoint) => {
@@ -282,28 +283,19 @@ class WorldStore extends BaseStore {
 			this.setFields(fields);
 			this[emitChangeSymbol]();
 		},
-		[MenuAction.APPLY_WORLD_SETTINGS]({ width, height, verticalFixation = true, horizontalFixation = true }) {
+		[MenuAction.APPLY_WORLD_SETTINGS](settings = {}) {
 			let isChanged = false;
-			if (width && width !== this[stateSymbol].width) {
-				this[stateSymbol].width = width;
-				isChanged = true;
-			}
-			if (height && height !== this[stateSymbol].height) {
-				this[stateSymbol].height = height;
-				isChanged = true;
-			}
-			if (verticalFixation !== this[stateSymbol].verticalFixation) {
-				this[stateSymbol].verticalFixation = verticalFixation;
-				isChanged = true;
-			}
-			if (horizontalFixation !== this[stateSymbol].horizontalFixation) {
-				this[stateSymbol].horizontalFixation = horizontalFixation;
-				isChanged = true;
-			}
+			Object.keys(settings).forEach((name) => {
+				const value = settings[name];
+				if (this[stateSymbol][name] !== undefined && this[stateSymbol][name] !== value) {
+					this[stateSymbol][name] = value;
+					isChanged = true;
+				}
+			});
 			if (isChanged) {
 				this[emitChangeSymbol]();
 			}
 		},
-	}
+	};
 }
 export default new WorldStore();

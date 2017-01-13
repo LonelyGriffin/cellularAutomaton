@@ -32,6 +32,7 @@ const Validate = {
 class MenuStore extends BaseStore {
 	[stateSymbol] = {
 		isOpened: false,
+		worldTypes: WorldStore.TYPE,
 		worldRestrictions: {
 			maxWidth: 100,
 			minWidth: 10,
@@ -43,8 +44,9 @@ class MenuStore extends BaseStore {
 			height: worldDefaultState.height,
 			verticalFixation: worldDefaultState.verticalFixation,
 			horizontalFixation: worldDefaultState.horizontalFixation,
+			type: worldDefaultState.type,
 		},
-	}
+	};
 
 	constructor(...props) {
 		super(...props);
@@ -97,7 +99,11 @@ class MenuStore extends BaseStore {
 			this[stateSymbol].world.horizontalFixation = !this[stateSymbol].world.horizontalFixation;
 			this[emitChangeSymbol]();
 		},
-	}
+		[MenuAction.CHANGE_SETTING_TYPE](newType) {
+			this[stateSymbol].world.type = newType;
+			this[emitChangeSymbol]();
+		},
+	};
 }
 
 export default new MenuStore();
