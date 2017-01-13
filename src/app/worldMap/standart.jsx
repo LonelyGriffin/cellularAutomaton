@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layer, Rect, Stage, Line } from 'react-konva';
+import 'app/worldMap/standart.less';
 import worldStore from 'store/world';
 import WorldAction from 'action/world';
 
@@ -37,6 +37,68 @@ export default class StandartMap extends React.Component {
 
 	state = getInitialState();
 
+	componentDidMount() {
+		this.updateFieldsCanvas();
+		this.updateGridCanvas();
+	}
+	componentDidUpdate(prevProps, prevState) {
+		this.updateFieldsCanvas();
+		if (this.state.width !== prevState.width || this.state.height !== prevState.height) {
+			this.updateGridCanvas();
+		}
+	}
+
+	getGridSize() {
+		return {
+			height: this.props.tileSize * this.state.height,
+			width: this.props.tileSize * this.state.width,
+		};
+	}
+
+	updateGridCanvas() {console.log('update');
+		const gridSize = this.getGridSize();
+		const ctx = this.gridCanvas.getContext('2d');
+		const dbCanvas = document.createElement('canvas');
+		dbCanvas.width = gridSize.width;
+		dbCanvas.height = gridSize.height;
+		const dbCtx = dbCanvas.getContext('2d');
+		dbCtx.beginPath();
+		dbCtx.lineWidth = 0.5;
+		dbCtx.strokeStyle = 'gray';
+		for (let x = 1; x < gridSize.width - 1; x++) {
+			dbCtx.moveTo(x * this.props.tileSize, 0);
+			dbCtx.lineTo(x * this.props.tileSize, gridSize.height);
+		}
+		for (let y = 1; y < gridSize.height - 1; y++) {
+			dbCtx.moveTo(0, y * this.props.tileSize);
+			dbCtx.lineTo(gridSize.width, y * this.props.tileSize);
+		}
+		dbCtx.stroke();
+		dbCtx.beginPath();
+		dbCtx.lineWidth = 0.5;
+		dbCtx.strokeStyle = 'black';
+		dbCtx.rect(0, 0, gridSize.width, gridSize.height);
+		dbCtx.stroke();
+		ctx.clearRect(0, 0, gridSize.width, gridSize.height);
+		ctx.drawImage(dbCanvas, 0, 0);
+	}
+
+	updateFieldsCanvas() {
+		const gridSize = this.getGridSize();
+		const tileSize = this.props.tileSize;
+		const ctx = this.fieldsCanvas.getContext('2d');
+		const dbCanvas = document.createElement('canvas');
+		dbCanvas.width = gridSize.width;
+		dbCanvas.height = gridSize.height;
+		const dbCtx = dbCanvas.getContext('2d');
+		this.state.fields.forEach((field, point) => {
+			dbCtx.fillStyle = 'black';
+			dbCtx.fillRect(point.x * tileSize, point.y * tileSize, tileSize, tileSize);
+		});
+		ctx.clearRect(0, 0, gridSize.width, gridSize.height);
+		ctx.drawImage(dbCanvas, 0, 0);
+	}
+
 	clickLayerHandler = (e) => {
 		const event = e.nativeEvent;
 		const point = {
@@ -48,57 +110,15 @@ export default class StandartMap extends React.Component {
 	}
 
 	render() {
-		const fields = [];
-
-		this.state.fields.forEach((field, point) => fields.push(
-			<Rect
-				key={`${point.x}_${point.y}`}
-				x={this.props.tileSize * point.x} y={this.props.tileSize * point.y}
-				width={this.props.tileSize} height={this.props.tileSize}
-				fill="black"
-			/>,
-		));
-
-		const grid = [];
-		const gridHeight = this.props.tileSize * this.state.height;
-		const gridWidth = this.props.tileSize * this.state.width;
-
-		for (let y = 0; y <= this.state.height; y++) {
-			const yPx = y * this.props.tileSize;
-			grid.push(
-				<Line
-					key={`h_line_${y}`}
-					points={[0, yPx, gridWidth, yPx]}
-					stroke="gray"
-					strokeWidth="0.2"
-				/>,
-			);
-		}
-
-		for (let x = 0; x <= this.state.width; x++) {
-			const xPx = x * this.props.tileSize;
-			grid.push(
-				<Line
-					key={`v_line_${x}`}
-					points={[xPx, 0, xPx, gridWidth]}
-					stroke="gray"
-					strokeWidth="0.2"
-				/>,
-			);
-		}
+		const gridSize = this.getGridSize();
 		const mapStyle = {
-			width: `${gridWidth}px`,
-			height: `${gridHeight}px`,
-			border: '1px solid gray',
+			width: `${gridSize.width}px`,
+			height: `${gridSize.height}px`,
 		};
 		return (
-			<div onClick={this.clickLayerHandler} style={mapStyle} >
-				<Stage width={gridWidth} height={gridHeight}>
-					<Layer>
-						{fields}
-						{grid}
-					</Layer>
-				</Stage>
+			<div onClick={this.clickLayerHandler} style={mapStyle} className="map" >
+				<canvas className="canvas" ref={(c) => { this.fieldsCanvas = c; }} width={gridSize.width} height={gridSize.height} />
+				<canvas className="canvas" ref={(c) => { this.gridCanvas = c; }} width={gridSize.width} height={gridSize.height} />
 			</div>
 		);
 	}
