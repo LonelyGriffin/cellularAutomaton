@@ -37452,6 +37452,9 @@
 				var isChanged = false;
 				if (settings.width) settings.width = +settings.width;
 				if (settings.height) settings.height = +settings.height;
+				if (settings.width || settings.height || settings.type) {
+					this.reset();
+				}
 				Object.keys(settings).forEach(function (name) {
 					var value = settings[name];
 					if (_this2[stateSymbol][name] !== undefined && _this2[stateSymbol][name] !== value) {
