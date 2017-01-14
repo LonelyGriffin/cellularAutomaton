@@ -303,6 +303,9 @@ class WorldStore extends BaseStore {
 			let isChanged = false;
 			if (settings.width) settings.width = +settings.width;
 			if (settings.height) settings.height = +settings.height;
+			if (settings.width || settings.height || settings.type) {
+				this.reset();
+			}
 			Object.keys(settings).forEach((name) => {
 				const value = settings[name];
 				if (this[stateSymbol][name] !== undefined && this[stateSymbol][name] !== value) {
