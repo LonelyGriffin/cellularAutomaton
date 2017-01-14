@@ -59,16 +59,32 @@ class WorldStore extends BaseStore {
 	}
 
 	getNeighborPoints(point) {
-		return [
-			{ x: point.x - 1,	y: point.y - 1 	},
-			{ x: point.x - 1,	y: point.y 		},
-			{ x: point.x - 1,	y: point.y + 1 	},
-			{ x: point.x,		y: point.y - 1 	},
-			{ x: point.x,		y: point.y + 1 	},
-			{ x: point.x + 1,	y: point.y - 1 	},
-			{ x: point.x + 1,	y: point.y 		},
-			{ x: point.x + 1,	y: point.y + 1 	},
-		];
+		let neighbors;
+		switch (this[stateSymbol].type) {
+		default:
+		case this.TYPE.SQUERY:
+			neighbors = [
+				{ x: point.x - 1,	y: point.y - 1 	},
+				{ x: point.x - 1,	y: point.y 		},
+				{ x: point.x - 1,	y: point.y + 1 	},
+				{ x: point.x,		y: point.y - 1 	},
+				{ x: point.x,		y: point.y + 1 	},
+				{ x: point.x + 1,	y: point.y - 1 	},
+				{ x: point.x + 1,	y: point.y 		},
+				{ x: point.x + 1,	y: point.y + 1 	},
+			];
+			break;
+		case this.TYPE.HEX:
+			neighbors = [
+				{ x: point.x + 1,	y: point.y	 	},
+				{ x: point.x,		y: point.y - 1	},
+				{ x: point.x - 1,	y: point.y - 1 	},
+				{ x: point.x - 1,	y: point.y  	},
+				{ x: point.x - 1,	y: point.y + 1 	},
+				{ x: point.x,		y: point.y + 1	},
+			];
+		}
+		return neighbors;
 	}
 
 	getNeighborFields(point) {
@@ -285,6 +301,8 @@ class WorldStore extends BaseStore {
 		},
 		[MenuAction.APPLY_WORLD_SETTINGS](settings = {}) {
 			let isChanged = false;
+			if (settings.width) settings.width = +settings.width;
+			if (settings.height) settings.height = +settings.height;
 			Object.keys(settings).forEach((name) => {
 				const value = settings[name];
 				if (this[stateSymbol][name] !== undefined && this[stateSymbol][name] !== value) {
